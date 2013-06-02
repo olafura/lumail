@@ -474,9 +474,6 @@ std::string CMessage::from()
     return( header( "From" ) );
 }
 
-/**
- * Get the date of the message.
- */
 
 struct tm *parseDateFmt(CMessage::TDate fmt,std::string date)
 {
@@ -496,6 +493,9 @@ struct tm *parseDateFmt(CMessage::TDate fmt,std::string date)
     return ( NULL );
 }
 
+/**
+ * Get the date of the message.
+ */
 std::string CMessage::date(TDate fmt)
 {
     std::string date = header("Date");
@@ -519,7 +519,18 @@ std::string CMessage::date(TDate fmt)
    
     if ( fmt == EDATE ) 
     	return( date );
+
+    if ( tm != NULL ) 
+    {
+        char staff[20];
+        memset(&tm, 0, 20);
    
+    
+        if ( fmt == EYEAR ) {
+            snprintf( staff,20,"%d",(tm->tm_year + 1900) );
+            return std::string(staff);
+        }
+    }
     return std::string("");
 
 }
