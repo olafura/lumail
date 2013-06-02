@@ -38,7 +38,7 @@ class CMessage
 {
  public:
 
-  enum TDate { EYEAR,EDAY,EMONTH, EFULL };
+  enum TDate { EYEAR,EDAY,EMONTH,EDATE };
   /**
    * Constructor
    */
@@ -114,7 +114,7 @@ class CMessage
   /**
    * Get the date of the message.
    */
-  std::string date(TDate fmt = EFULL);
+  std::string date(TDate fmt = EDATE);
 
   /**
    * Get the recipient of the message.

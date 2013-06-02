@@ -28,6 +28,7 @@
 
 #include <sys/stat.h>
 #include <time.h>
+#include "lua.h"
 
 #include "file.h"
 #include "message.h"
@@ -475,14 +476,33 @@ std::string CMessage::from()
 
 /**
  * Get the date of the message.
- *
- * TODO: ctime vs localtime
  */
+
+struct tm *parseDateFmt(CMessage::TDate fmt,std::string date)
+{
+    static struct tm tm;
+    memset(&tm, 0, sizeof(struct tm));
+
+    CLua *lua = CLua::Instance();
+    std::vector<std::string> date_fmt = lua->table_to_array( "date_formats" );
+    std::vector<std::string>::iterator it;
+
+    for (it = date_fmt.begin(); it != date_fmt.end(); ++it) {
+        std::string f = (*it);
+        strptime(date.c_str(),f.c_str(), &tm);
+        if ( tm.tm_mday != 0 )
+            return &tm; 
+    }
+    return ( NULL );
+}
+
 std::string CMessage::date(TDate fmt)
 {
     std::string date = header("Date");
+    struct tm *tm; 
 
-    if (date.empty()) {
+    if (date.empty()) 
+    {
         struct stat st_buf;
         const char *p = path().c_str();
 
@@ -490,63 +510,18 @@ std::string CMessage::date(TDate fmt)
         if ( !err ) {
             time_t modt = st_buf.st_mtime;
             date = ctime(&modt);
+            tm 	= localtime (&modt); //XXX: 
         }
-    }
-    if ( fmt == EFULL )
+    } 
+    else 
+       tm = parseDateFmt(fmt,date);
+    
+   
+    if ( fmt == EDATE ) 
     	return( date );
-    if ( fmt == EYEAR )
-    {
-        struct tm tm;
-
-        if (strptime(date.c_str(), "%a, %d %b %Y %H:%M:%S", &tm) != NULL)
-        {
-            char buff[20] = { '\0' };
-            snprintf(buff, sizeof(buff)-1, "%d", ( 1900 + tm.tm_year ) );
-
-            return( std::string(buff) );
-        }
-        else
-            return std::string("$YEAR");
-    }
-    if ( fmt == EMONTH )
-    {
-        const char *months[] = { "January",
-                                 "February",
-                                 "March",
-                                 "April",
-                                 "May",
-                                 "June",
-                                 "July",
-                                 "August",
-                                 "September",
-                                 "October",
-                                 "November",
-                                 "December" };
-        struct tm tm;
-
-        if (strptime(date.c_str(), "%a, %d %b %Y %H:%M:%S", &tm) != NULL)
-        {
-            return( std::string(months[tm.tm_mon]) );
-        }
-        else
-            return std::string("$MONTH");
-    }
-    if ( fmt == EDAY )
-    {
-        struct tm tm;
-
-        if (strptime(date.c_str(), "%a, %d %b %Y %H:%M:%S", &tm) != NULL)
-        {
-            char buff[20] = { '\0' };
-            snprintf(buff, sizeof(buff)-1, "%d", ( tm.tm_mday ) );
-
-            return( std::string(buff) );
-        }
-        else
-            return std::string("$DAY");
-    }
-
+   
     return std::string("");
+
 }
 
 

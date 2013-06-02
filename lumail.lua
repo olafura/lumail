@@ -86,6 +86,8 @@ maildir_limit( "all" );
 index_limit( "all" );
 
 
+
+date_formats = {"%a %b %d %T %Y",  "%a, %b %d %T %Y"}
 --
 -- The index format controls how messages are displayed inside folder lists.
 --
